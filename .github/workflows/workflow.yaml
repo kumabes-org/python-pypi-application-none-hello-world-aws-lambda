@@ -1,0 +1,162 @@
+name: "Workflow"
+
+on: push
+
+jobs:
+  build:
+    name: build
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+
+
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.10.12'
+          architecture: 'x64'
+          cache: 'pip'
+          cache-dependency-path: '**/requirements*.txt'        
+
+      - name: Python Install
+        run: |
+          if test -f "$PYTHON_REQUIREMENTS"; then 
+            pip install -r $PYTHON_REQUIREMENTS -t libs; 
+          else
+            echo "ERRO:_ Não encontramos o arquivo requirements.txt na pasta '${PWD}'"
+            exit 1;
+          fi
+
+          ls -lrth libs
+        env:
+          PYTHON_REQUIREMENTS: requirements.txt
+
+      - name: Python Build
+        run: |
+          python -m compileall
+          ls -lrth libs
+
+  test:
+    name: test
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+
+  inspection:
+    needs:
+      - build
+      - test
+    name: inspection
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4        
+
+  package:
+    needs:
+      - inspection
+    name: package
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4          
+
+  publish:
+    needs:
+      - package
+    name: publish
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+
+  deploy_dev:
+    needs:
+      - publish
+    name: deploy_dev
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+
+  deploy_hom:
+    needs:
+      - deploy_dev
+    name: deploy_hom
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+
+  governance:
+    needs:
+      - deploy_hom
+    name: governance
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
+                    
+  deploy_prod:
+    needs:
+      - governance
+    name: deploy_prod
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4
