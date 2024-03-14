@@ -62,3 +62,25 @@ jobs:
     steps:
       - name: actions/checkout
         uses: actions/checkout@v4          
+
+  pull-request:
+    needs:
+      - deploy
+    name: pull-request
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    defaults:
+      run:
+        shell: bash
+        working-directory: app
+    steps:
+      - name: actions/checkout
+        uses: actions/checkout@v4              
+      
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
+          delete-branch: false
