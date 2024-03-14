@@ -40,7 +40,7 @@ jobs:
       - name: Python Build
         run: |
           python -m compileall
-          ls -lrth libs
+          ls -lrth
 
   test:
     name: test
